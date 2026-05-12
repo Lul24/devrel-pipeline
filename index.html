@@ -1,0 +1,2020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DevRel Pipeline — AI Content Automation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>
+:root {
+  --bg: #060608;
+  --surface: #0d0d12;
+  --surface2: #12121a;
+  --surface3: #1a1a26;
+  --border: rgba(255,255,255,0.06);
+  --border2: rgba(255,255,255,0.10);
+  --accent: #6c63ff;
+  --accent2: #a78bfa;
+  --accent3: #38bdf8;
+  --green: #10b981;
+  --amber: #f59e0b;
+  --red: #ef4444;
+  --text: #f0eeff;
+  --text2: #9090b0;
+  --text3: #50507a;
+  --font-head: 'Syne', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+  --font-body: 'Inter', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Grid noise texture */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: 
+    radial-gradient(ellipse 80% 60% at 20% 0%, rgba(108,99,255,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 100%, rgba(56,189,248,0.06) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  grid-template-rows: 56px 1fr;
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── TOPBAR ── */
+.topbar {
+  grid-column: 1 / -1;
+  background: rgba(6,6,8,0.9);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 20px 0 0;
+  gap: 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.topbar-logo {
+  width: 240px;
+  flex-shrink: 0;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-right: 1px solid var(--border);
+  height: 100%;
+}
+
+.logo-icon {
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, var(--accent), var(--accent3));
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.logo-text {
+  font-family: var(--font-head);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.3px;
+}
+
+.logo-sub { font-size: 10px; color: var(--text3); font-family: var(--font-mono); }
+
+.topbar-center {
+  flex: 1;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pipeline-step-mini {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text3);
+  font-family: var(--font-mono);
+  padding: 4px 10px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.pipeline-step-mini:hover { color: var(--text2); background: var(--surface2); }
+.pipeline-step-mini.active { color: var(--accent2); background: rgba(108,99,255,0.12); }
+.pipeline-step-mini.done { color: var(--green); }
+.pipeline-step-mini .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: currentColor; flex-shrink: 0;
+}
+.pipeline-step-mini .connector {
+  width: 16px; height: 1px; background: var(--border2); flex-shrink: 0;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--border2);
+  color: var(--green);
+}
+
+.pulse-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--green);
+  animation: pulse-glow 2s infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(16,185,129,0.4); }
+  50% { opacity: 0.8; box-shadow: 0 0 0 4px rgba(16,185,129,0); }
+}
+
+.btn-icon {
+  width: 32px; height: 32px;
+  background: transparent;
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  color: var(--text2);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  font-size: 15px;
+  transition: all 0.2s;
+}
+.btn-icon:hover { background: var(--surface2); color: var(--text); border-color: var(--border2); }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-y: auto;
+}
+
+.sidebar-section-label {
+  font-size: 9px;
+  font-family: var(--font-mono);
+  color: var(--text3);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 8px 10px 4px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+  position: relative;
+  border: 1px solid transparent;
+}
+.nav-item:hover { background: var(--surface2); }
+.nav-item.active {
+  background: rgba(108,99,255,0.12);
+  border-color: rgba(108,99,255,0.2);
+}
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 25%; bottom: 25%;
+  width: 2px;
+  background: var(--accent);
+  border-radius: 2px;
+}
+
+.nav-icon {
+  width: 28px; height: 28px;
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+  background: var(--surface3);
+  color: var(--text2);
+  transition: all 0.15s;
+}
+.nav-item.active .nav-icon { background: rgba(108,99,255,0.2); color: var(--accent2); }
+.nav-item.done .nav-icon { background: rgba(16,185,129,0.15); color: var(--green); }
+
+.nav-label {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text2);
+  flex: 1;
+  transition: color 0.15s;
+}
+.nav-item.active .nav-label { color: var(--text); }
+.nav-item.done .nav-label { color: var(--green); }
+
+.nav-badge {
+  font-size: 9px;
+  font-family: var(--font-mono);
+  color: var(--text3);
+  background: var(--surface3);
+  padding: 2px 6px;
+  border-radius: 10px;
+}
+.nav-item.active .nav-badge { color: var(--accent2); background: rgba(108,99,255,0.15); }
+.nav-item.done .nav-badge { color: var(--green); background: rgba(16,185,129,0.12); }
+
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.usage-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 8px;
+}
+.usage-label { font-size: 10px; font-family: var(--font-mono); color: var(--text3); margin-bottom: 6px; }
+.usage-bar {
+  height: 3px;
+  background: var(--surface3);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+.usage-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  transition: width 0.6s ease;
+}
+.usage-nums { font-size: 10px; color: var(--text3); font-family: var(--font-mono); display: flex; justify-content: space-between; }
+
+/* ── MAIN CONTENT ── */
+.main {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.content-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── PANELS ── */
+.panel { display: none; flex-direction: column; gap: 20px; }
+.panel.active { display: flex; animation: fadeIn 0.25s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ── SECTION HEADER ── */
+.section-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.section-title {
+  font-family: var(--font-head);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.5px;
+}
+
+.section-sub {
+  font-size: 12px;
+  color: var(--text3);
+  font-family: var(--font-mono);
+  margin-top: 4px;
+}
+
+.section-actions { display: flex; gap: 8px; align-items: center; }
+
+/* ── CARDS ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+}
+
+.card-sm {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+}
+
+/* ── FIELD ── */
+.field-label {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 7px;
+  font-weight: 500;
+}
+
+.dark-input {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-family: var(--font-body);
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.dark-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(108,99,255,0.12);
+}
+.dark-input::placeholder { color: var(--text3); }
+
+.dark-textarea {
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.6;
+}
+
+/* ── PILL TOGGLES ── */
+.pill-group { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.pill {
+  font-size: 11.5px;
+  font-family: var(--font-mono);
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--text3);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.pill:hover { border-color: var(--accent); color: var(--text2); }
+.pill.active {
+  background: rgba(108,99,255,0.14);
+  border-color: rgba(108,99,255,0.4);
+  color: var(--accent2);
+}
+.pill.active-green {
+  background: rgba(16,185,129,0.10);
+  border-color: rgba(16,185,129,0.35);
+  color: var(--green);
+}
+
+/* ── BUTTONS ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 16px;
+  border-radius: 9px;
+  font-size: 12.5px;
+  font-family: var(--font-body);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: white;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.btn:active::after { opacity: 0.06; }
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent), #5b52e0);
+  color: #fff;
+  border-color: rgba(255,255,255,0.1);
+  box-shadow: 0 2px 12px rgba(108,99,255,0.3), 0 1px 2px rgba(0,0,0,0.3);
+}
+.btn-primary:hover {
+  background: linear-gradient(135deg, #7d75ff, var(--accent));
+  box-shadow: 0 4px 20px rgba(108,99,255,0.4), 0 1px 2px rgba(0,0,0,0.3);
+  transform: translateY(-1px);
+}
+.btn-primary:active { transform: translateY(0); box-shadow: 0 2px 8px rgba(108,99,255,0.3); }
+
+.btn-secondary {
+  background: var(--surface2);
+  border-color: var(--border2);
+  color: var(--text2);
+}
+.btn-secondary:hover { background: var(--surface3); color: var(--text); border-color: rgba(255,255,255,0.15); }
+
+.btn-ghost {
+  background: transparent;
+  border-color: var(--border2);
+  color: var(--text3);
+}
+.btn-ghost:hover { color: var(--text2); background: var(--surface2); }
+
+.btn-green {
+  background: rgba(16,185,129,0.15);
+  border-color: rgba(16,185,129,0.35);
+  color: var(--green);
+}
+.btn-green:hover { background: rgba(16,185,129,0.22); }
+
+.btn-danger {
+  background: rgba(239,68,68,0.12);
+  border-color: rgba(239,68,68,0.3);
+  color: var(--red);
+}
+
+.btn-full { width: 100%; justify-content: center; }
+
+.btn-lg { padding: 11px 22px; font-size: 13.5px; }
+
+.btn:disabled, .btn[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* spinner */
+.spinner {
+  width: 13px; height: 13px;
+  border: 2px solid rgba(255,255,255,0.2);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.65s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── STAT CARDS ── */
+.stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.stat-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  padding: 14px 16px;
+  position: relative;
+  overflow: hidden;
+}
+.stat-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.5;
+}
+.stat-val {
+  font-family: var(--font-head);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.stat-lbl { font-size: 11px; font-family: var(--font-mono); color: var(--text3); }
+.stat-change { font-size: 10px; color: var(--green); margin-top: 4px; font-family: var(--font-mono); }
+
+/* ── PROGRESS BAR ── */
+.prog-bar {
+  height: 4px;
+  background: var(--surface3);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.prog-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  transition: width 0.5s ease;
+  position: relative;
+}
+.prog-fill::after {
+  content: '';
+  position: absolute;
+  right: 0; top: 0; bottom: 0;
+  width: 20px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3));
+  animation: shimmer 1.5s infinite;
+}
+@keyframes shimmer { 0% { opacity: 0; } 50% { opacity: 1; } 100% { opacity: 0; } }
+
+/* ── MODEL GRID ── */
+.model-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+
+.model-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  transition: all 0.2s;
+  position: relative;
+}
+.model-card:hover { border-color: var(--border2); }
+.model-card.winner {
+  border-color: var(--green);
+  background: rgba(16,185,129,0.05);
+  box-shadow: 0 0 20px rgba(16,185,129,0.1);
+}
+
+.model-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.model-name {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  color: var(--text2);
+}
+.model-avatar {
+  width: 22px; height: 22px;
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px;
+}
+
+.win-badge {
+  font-size: 9px;
+  font-family: var(--font-mono);
+  background: rgba(16,185,129,0.15);
+  color: var(--green);
+  border: 1px solid rgba(16,185,129,0.3);
+  padding: 2px 7px;
+  border-radius: 10px;
+  letter-spacing: 0.5px;
+}
+
+.model-out {
+  font-size: 11.5px;
+  color: var(--text2);
+  line-height: 1.65;
+  font-family: var(--font-body);
+  min-height: 50px;
+  white-space: pre-wrap;
+}
+
+.score-row { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 10px; }
+.score-chip {
+  font-size: 9.5px;
+  font-family: var(--font-mono);
+  background: var(--surface3);
+  color: var(--text3);
+  padding: 2px 7px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+/* ── VERDICT BOX ── */
+.verdict-box {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  position: relative;
+  overflow: hidden;
+}
+.verdict-box::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--accent), var(--accent2));
+}
+.verdict-label {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--accent2);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.verdict-text { font-size: 13px; color: var(--text2); line-height: 1.7; }
+
+/* ── SCORE GAUGES ── */
+.score-gauges { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.gauge-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  padding: 14px;
+  text-align: center;
+}
+.gauge-val {
+  font-family: var(--font-head);
+  font-size: 28px;
+  font-weight: 800;
+  margin-bottom: 2px;
+}
+.gauge-lbl { font-size: 10px; font-family: var(--font-mono); color: var(--text3); margin-bottom: 8px; }
+.gauge-ring {
+  width: 48px; height: 48px;
+  margin: 0 auto 8px;
+  position: relative;
+}
+.gauge-ring svg { transform: rotate(-90deg); }
+.gauge-ring circle {
+  fill: none;
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+.gauge-track { stroke: var(--surface3); }
+.gauge-progress { transition: stroke-dashoffset 1s ease; }
+
+/* ── OUTPUT PACK CARDS ── */
+.output-pack {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 10px;
+}
+.pack-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.pack-platform {
+  font-size: 10px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  color: var(--accent2);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.pack-model-badge {
+  font-size: 9.5px;
+  font-family: var(--font-mono);
+  color: var(--green);
+  background: rgba(16,185,129,0.1);
+  border: 1px solid rgba(16,185,129,0.2);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+.pack-text { font-size: 13px; color: var(--text2); line-height: 1.7; white-space: pre-wrap; }
+
+/* ── API KEY CARDS ── */
+.api-key-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.api-key-icon {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.api-key-info { flex: 1; }
+.api-key-name { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.api-key-val {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text3);
+  letter-spacing: 1px;
+}
+.api-key-status {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10.5px;
+  font-family: var(--font-mono);
+}
+
+.connected { color: var(--green); }
+.disconnected { color: var(--red); }
+
+/* ── TOAST ── */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+.toast {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12.5px;
+  color: var(--text);
+  min-width: 260px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  animation: toastIn 0.25s ease, toastOut 0.25s ease 2.75s forwards;
+  pointer-events: auto;
+}
+@keyframes toastIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes toastOut { from { opacity: 1; } to { opacity: 0; transform: translateX(20px); } }
+.toast-icon { font-size: 16px; }
+.toast.success .toast-icon { color: var(--green); }
+.toast.error .toast-icon { color: var(--red); }
+.toast.info .toast-icon { color: var(--accent2); }
+
+/* ── LOG CONSOLE ── */
+.log-console {
+  background: #04040a;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.8;
+  max-height: 160px;
+  overflow-y: auto;
+  color: var(--text3);
+}
+.log-line { display: flex; gap: 10px; }
+.log-time { color: var(--text3); flex-shrink: 0; }
+.log-info { color: var(--accent2); }
+.log-success { color: var(--green); }
+.log-warn { color: var(--amber); }
+.log-error { color: var(--red); }
+
+/* ── ROUTING ANIMATION ── */
+.routing-vis {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.route-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.route-icon {
+  width: 42px; height: 42px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  border: 1px solid var(--border2);
+  background: var(--surface3);
+  transition: all 0.3s;
+}
+.route-node.active .route-icon {
+  border-color: var(--accent);
+  background: rgba(108,99,255,0.15);
+  box-shadow: 0 0 16px rgba(108,99,255,0.3);
+}
+.route-node.winner .route-icon {
+  border-color: var(--green);
+  background: rgba(16,185,129,0.12);
+  box-shadow: 0 0 16px rgba(16,185,129,0.25);
+}
+.route-label { font-size: 10px; font-family: var(--font-mono); color: var(--text3); }
+.route-connector {
+  flex: 1;
+  height: 1px;
+  background: var(--border2);
+  position: relative;
+}
+.route-connector::after {
+  content: '';
+  position: absolute;
+  left: 0; top: 0;
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  transition: width 1s ease;
+}
+.route-connector.active::after { width: 100%; }
+
+/* ── DIVIDER ── */
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+}
+
+/* ── TAGS ── */
+.tag {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  color: var(--text3);
+}
+
+.tag-accent { border-color: rgba(108,99,255,0.3); color: var(--accent2); background: rgba(108,99,255,0.1); }
+.tag-green { border-color: rgba(16,185,129,0.3); color: var(--green); background: rgba(16,185,129,0.1); }
+.tag-amber { border-color: rgba(245,158,11,0.3); color: var(--amber); background: rgba(245,158,11,0.1); }
+.tag-red { border-color: rgba(239,68,68,0.3); color: var(--red); background: rgba(239,68,68,0.1); }
+
+/* ── RESPONSIVE ROW ── */
+.row { display: flex; gap: 12px; align-items: flex-start; }
+.col { display: flex; flex-direction: column; gap: 12px; }
+.flex-1 { flex: 1; }
+.flex-between { display: flex; align-items: center; justify-content: space-between; }
+.flex-gap { display: flex; align-items: center; gap: 8px; }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+
+/* ── HIDDEN ── */
+.hidden { display: none !important; }
+
+/* ── STAGE TIMELINE ── */
+.stage-timeline {
+  display: flex;
+  gap: 0;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  overflow-x: auto;
+}
+.stage-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+  white-space: nowrap;
+  font-size: 12.5px;
+  color: var(--text3);
+  font-weight: 500;
+}
+.stage-tab:hover { color: var(--text2); }
+.stage-tab.active { border-bottom-color: var(--accent); color: var(--text); }
+.stage-tab.done { color: var(--green); }
+.stage-num {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--surface3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px;
+  font-family: var(--font-mono);
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+.stage-tab.active .stage-num { background: var(--accent); color: white; }
+.stage-tab.done .stage-num { background: var(--green); color: white; }
+
+/* Global progress bar */
+.global-prog {
+  height: 2px;
+  background: var(--surface3);
+  position: relative;
+}
+.global-prog-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3));
+  transition: width 0.5s ease;
+}
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-logo">
+      <img src="data:image/jpeg;base64,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" alt="Devnovate" style="height:30px;width:auto;object-fit:contain;border-radius:4px;">
+      <div>
+        <div class="logo-sub">v2.4.1 · claude-sonnet</div>
+      </div>
+    </div>
+    <div class="topbar-center" id="topbar-steps">
+      <!-- filled by JS -->
+    </div>
+    <div class="topbar-right">
+      <div class="status-badge">
+        <div class="pulse-dot"></div>
+        Pipeline ready
+      </div>
+      <button class="btn-icon" onclick="goto(6)" title="API Keys"><i class="ti ti-key"></i></button>
+      <button class="btn-icon" title="Settings"><i class="ti ti-settings"></i></button>
+    </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-section-label">Pipeline</div>
+    <div class="nav-item active" onclick="goto(0)" id="nav0">
+      <div class="nav-icon"><i class="ti ti-link"></i></div>
+      <span class="nav-label">Input</span>
+      <span class="nav-badge">01</span>
+    </div>
+    <div class="nav-item" onclick="goto(1)" id="nav1">
+      <div class="nav-icon"><i class="ti ti-file-text"></i></div>
+      <span class="nav-label">Summarizer</span>
+      <span class="nav-badge">02</span>
+    </div>
+    <div class="nav-item" onclick="goto(2)" id="nav2">
+      <div class="nav-icon"><i class="ti ti-pencil"></i></div>
+      <span class="nav-label">Generator</span>
+      <span class="nav-badge">03</span>
+    </div>
+    <div class="nav-item" onclick="goto(3)" id="nav3">
+      <div class="nav-icon"><i class="ti ti-chart-bar"></i></div>
+      <span class="nav-label">Scorer</span>
+      <span class="nav-badge">04</span>
+    </div>
+    <div class="nav-item" onclick="goto(4)" id="nav4">
+      <div class="nav-icon"><i class="ti ti-git-branch"></i></div>
+      <span class="nav-label">Model Router</span>
+      <span class="nav-badge">05</span>
+    </div>
+    <div class="nav-item" onclick="goto(5)" id="nav5">
+      <div class="nav-icon"><i class="ti ti-package"></i></div>
+      <span class="nav-label">Output Pack</span>
+      <span class="nav-badge">06</span>
+    </div>
+
+    <div class="sidebar-section-label" style="margin-top:8px">System</div>
+    <div class="nav-item" onclick="goto(6)" id="nav6">
+      <div class="nav-icon"><i class="ti ti-key"></i></div>
+      <span class="nav-label">API Keys</span>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="usage-card">
+        <div class="usage-label">API Usage · This Month</div>
+        <div class="usage-bar"><div class="usage-fill" style="width:62%"></div></div>
+        <div class="usage-nums"><span>62,400 tokens</span><span>100k limit</span></div>
+      </div>
+      <div class="nav-item">
+        <div class="nav-icon"><i class="ti ti-help-circle"></i></div>
+        <span class="nav-label">Docs</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <!-- Stage tabs + progress -->
+    <div class="global-prog"><div class="global-prog-fill" id="global-prog" style="width:0%"></div></div>
+    <div class="stage-timeline" id="stage-tabs"></div>
+
+    <div class="content-area">
+
+      <!-- ──────── PANEL 0: INPUT ──────── -->
+      <div class="panel active" id="panel0">
+        <div class="section-header">
+          <div>
+            <div class="section-title">Source Input</div>
+            <div class="section-sub">// github repo URL or product changelog text</div>
+          </div>
+          <div class="section-actions">
+            <span class="tag tag-accent">Step 01 / 06</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="margin-bottom:16px">
+            <div class="field-label">Source Type</div>
+            <div class="pill-group" id="source-type">
+              <button class="pill active" onclick="selectPill(this,'source-type')">GitHub Repo URL</button>
+              <button class="pill" onclick="selectPill(this,'source-type')">Changelog Text</button>
+              <button class="pill" onclick="selectPill(this,'source-type')">Release Notes</button>
+            </div>
+          </div>
+          <div style="margin-bottom:14px">
+            <div class="field-label">Source URL / Content</div>
+            <input class="dark-input" id="source-input" placeholder="https://github.com/owner/repo" value="https://github.com/anthropics/anthropic-sdk-python">
+          </div>
+          <div style="margin-bottom:16px">
+            <div class="field-label">Context (optional)</div>
+            <textarea class="dark-input dark-textarea" id="source-context" placeholder="Any extra context about the tool or audience..."></textarea>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-primary btn-lg" id="analyze-btn" onclick="nextStage(0)">
+              <i class="ti ti-player-play"></i> Analyze Source
+            </button>
+            <button class="btn btn-secondary" onclick="demoState()">
+              <i class="ti ti-wand"></i> Load Demo
+            </button>
+            <button class="btn btn-ghost" onclick="showToast('info','Fetching GitHub API data...','ti-api')">
+              <i class="ti ti-refresh"></i> Refresh
+            </button>
+          </div>
+        </div>
+
+        <!-- Button States Showcase -->
+        <div class="card">
+          <div class="field-label" style="margin-bottom:12px">Button States Preview</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">
+            <button class="btn btn-primary"><i class="ti ti-circle-check"></i> Default</button>
+            <button class="btn btn-primary" style="opacity:0.75"><div class="spinner"></div> Loading</button>
+            <button class="btn btn-primary" style="background:linear-gradient(135deg,var(--green),#059669)"><i class="ti ti-circle-check"></i> Success</button>
+            <button class="btn btn-danger"><i class="ti ti-alert-circle"></i> Error</button>
+            <button class="btn btn-primary" disabled><i class="ti ti-lock"></i> Disabled</button>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px">
+            <button class="btn btn-secondary"><i class="ti ti-copy"></i> Copy</button>
+            <button class="btn btn-green"><i class="ti ti-upload"></i> Publish</button>
+            <button class="btn btn-ghost"><i class="ti ti-trash"></i> Clear</button>
+            <button class="btn btn-secondary" onclick="showToast('success','Copied to clipboard!','ti-copy')"><i class="ti ti-clipboard"></i> Test Toast</button>
+          </div>
+        </div>
+
+        <!-- Log Console -->
+        <div class="card-sm">
+          <div class="flex-between" style="margin-bottom:10px">
+            <div class="field-label" style="margin-bottom:0">System Log</div>
+            <button class="btn btn-ghost" style="padding:4px 8px;font-size:11px">Clear</button>
+          </div>
+          <div class="log-console" id="log-console">
+            <div class="log-line"><span class="log-time">09:14:22</span><span class="log-info">[INFO]</span><span>Pipeline initialized · claude-sonnet-4-20250514</span></div>
+            <div class="log-line"><span class="log-time">09:14:22</span><span class="log-success">[OK]</span><span>Anthropic API key validated</span></div>
+            <div class="log-line"><span class="log-time">09:14:23</span><span class="log-warn">[WARN]</span><span>GPT-4o key missing · model router will skip OpenAI</span></div>
+            <div class="log-line"><span class="log-time">09:14:23</span><span class="log-info">[INFO]</span><span>Ready to process source input</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ──────── PANEL 1: SUMMARIZER ──────── -->
+      <div class="panel" id="panel1">
+        <div class="section-header">
+          <div>
+            <div class="section-title">AI Summarizer</div>
+            <div class="section-sub">// extracting features, commits, and key updates</div>
+          </div>
+          <div class="section-actions">
+            <span class="tag tag-accent">Step 02 / 06</span>
+            <button class="btn btn-ghost" onclick="goto(0)"><i class="ti ti-arrow-left"></i> Back</button>
+          </div>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-val" id="s-commits">—</div>
+            <div class="stat-lbl">Commits Detected</div>
+            <div class="stat-change" id="sc-change" style="display:none">↑ Last 30 days</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val" id="s-features">—</div>
+            <div class="stat-lbl">New Features</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val" id="s-fixes">—</div>
+            <div class="stat-lbl">Bug Fixes</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="row" style="gap:16px">
+            <div class="col flex-1">
+              <div>
+                <div class="field-label">AI Summary</div>
+                <textarea class="dark-input dark-textarea" id="summary-out" style="min-height:110px" placeholder="Summary will appear here..."></textarea>
+              </div>
+            </div>
+            <div class="col flex-1">
+              <div>
+                <div class="field-label">Key Highlights</div>
+                <textarea class="dark-input dark-textarea" id="highlights-out" style="min-height:110px" placeholder="Highlights will appear here..."></textarea>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:12px">
+            <div class="field-label">Extraction Progress</div>
+            <div style="display:grid;gap:8px">
+              <div class="flex-between" style="margin-bottom:2px"><span style="font-size:11px;color:var(--text3);font-family:var(--font-mono)">Release notes</span><span class="tag tag-green">Done</span></div>
+              <div class="prog-bar"><div class="prog-fill" id="p1" style="width:100%"></div></div>
+              <div class="flex-between" style="margin-bottom:2px"><span style="font-size:11px;color:var(--text3);font-family:var(--font-mono)">Feature detection</span><span class="tag tag-green" id="ft-tag">Pending</span></div>
+              <div class="prog-bar"><div class="prog-fill" id="p2" style="width:0%"></div></div>
+              <div class="flex-between" style="margin-bottom:2px"><span style="font-size:11px;color:var(--text3);font-family:var(--font-mono)">Token usage analysis</span><span class="tag" id="tu-tag">Pending</span></div>
+              <div class="prog-bar"><div class="prog-fill" id="p3" style="width:0%"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary" onclick="goto(0)"><i class="ti ti-arrow-left"></i> Back</button>
+          <button class="btn btn-primary flex-1 btn-lg" onclick="nextStage(1)"><i class="ti ti-arrow-right"></i> Generate Posts</button>
+          <button class="btn btn-ghost" onclick="showToast('info','Re-analyzing source...','ti-refresh')"><i class="ti ti-refresh"></i> Retry</button>
+        </div>
+      </div>
+
+      <!-- ──────── PANEL 2: GENERATOR ──────── -->
+      <div class="panel" id="panel2">
+        <div class="section-header">
+          <div>
+            <div class="section-title">Content Generator</div>
+            <div class="section-sub">// platform-specific posts with tone control</div>
+          </div>
+          <div class="section-actions">
+            <span class="tag tag-accent">Step 03 / 06</span>
+            <button class="btn btn-ghost" onclick="goto(1)"><i class="ti ti-arrow-left"></i> Back</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="row" style="gap:20px;margin-bottom:16px">
+            <div class="flex-1">
+              <div class="field-label">Platforms</div>
+              <div class="pill-group" id="plat-select">
+                <button class="pill active" onclick="togglePill(this)">𝕏 Thread</button>
+                <button class="pill active" onclick="togglePill(this)">LinkedIn</button>
+                <button class="pill active" onclick="togglePill(this)">Dev.to</button>
+                <button class="pill active" onclick="togglePill(this)">Reddit</button>
+                <button class="pill active" onclick="togglePill(this)">Substack</button>
+              </div>
+            </div>
+            <div>
+              <div class="field-label">Tone</div>
+              <div class="pill-group" id="tone-select">
+                <button class="pill active" onclick="selectPill(this,'tone-select')">Technical</button>
+                <button class="pill" onclick="selectPill(this,'tone-select')">Casual</button>
+                <button class="pill" onclick="selectPill(this,'tone-select')">Hype</button>
+                <button class="pill" onclick="selectPill(this,'tone-select')">Educational</button>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-primary btn-lg" id="gen-btn" onclick="nextStage(2)"><i class="ti ti-player-play"></i> Generate Posts</button>
+            <button class="btn btn-secondary" onclick="showToast('info','Regenerating all posts...','ti-refresh')"><i class="ti ti-refresh"></i> Regenerate</button>
+            <button class="btn btn-ghost" onclick="showToast('success','All posts copied!','ti-copy')"><i class="ti ti-copy"></i> Copy All</button>
+            <button class="btn btn-green" onclick="showToast('success','Scheduled for publish!','ti-calendar')"><i class="ti ti-send"></i> Publish All</button>
+          </div>
+        </div>
+
+        <div id="gen-posts-area"></div>
+
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary" onclick="goto(1)"><i class="ti ti-arrow-left"></i> Back</button>
+          <button class="btn btn-primary flex-1 btn-lg" onclick="nextStage(2)"><i class="ti ti-arrow-right"></i> Score Posts</button>
+        </div>
+      </div>
+
+      <!-- ──────── PANEL 3: SCORER ──────── -->
+      <div class="panel" id="panel3">
+        <div class="section-header">
+          <div>
+            <div class="section-title">AI Quality Scorer</div>
+            <div class="section-sub">// clarity · engagement · technical accuracy · virality</div>
+          </div>
+          <div class="section-actions">
+            <span class="tag tag-accent">Step 04 / 06</span>
+            <button class="btn btn-ghost" onclick="goto(2)"><i class="ti ti-arrow-left"></i> Back</button>
+          </div>
+        </div>
+
+        <div class="score-gauges">
+          <div class="gauge-card">
+            <div class="gauge-ring">
+              <svg width="48" height="48" viewBox="0 0 48 48">
+                <circle class="gauge-track" cx="24" cy="24" r="20" stroke-dasharray="125.6" stroke-dashoffset="0"/>
+                <circle class="gauge-progress" cx="24" cy="24" r="20" stroke="var(--accent2)" stroke-dasharray="125.6" stroke-dashoffset="37.7" id="g-clarity"/>
+              </svg>
+            </div>
+            <div class="gauge-val" style="color:var(--accent2)" id="gv-clarity">8.2</div>
+            <div class="gauge-lbl">Clarity</div>
+          </div>
+          <div class="gauge-card">
+            <div class="gauge-ring">
+              <svg width="48" height="48" viewBox="0 0 48 48">
+                <circle class="gauge-track" cx="24" cy="24" r="20" stroke-dasharray="125.6" stroke-dashoffset="0"/>
+                <circle class="gauge-progress" cx="24" cy="24" r="20" stroke="var(--green)" stroke-dasharray="125.6" stroke-dashoffset="25.1" id="g-engage"/>
+              </svg>
+            </div>
+            <div class="gauge-val" style="color:var(--green)" id="gv-engage">8.8</div>
+            <div class="gauge-lbl">Engagement</div>
+          </div>
+          <div class="gauge-card">
+            <div class="gauge-ring">
+              <svg width="48" height="48" viewBox="0 0 48 48">
+                <circle class="gauge-track" cx="24" cy="24" r="20" stroke-dasharray="125.6" stroke-dashoffset="0"/>
+                <circle class="gauge-progress" cx="24" cy="24" r="20" stroke="var(--accent3)" stroke-dasharray="125.6" stroke-dashoffset="43.9" id="g-tech"/>
+              </svg>
+            </div>
+            <div class="gauge-val" style="color:var(--accent3)" id="gv-tech">7.9</div>
+            <div class="gauge-lbl">Tech Accuracy</div>
+          </div>
+          <div class="gauge-card">
+            <div class="gauge-ring">
+              <svg width="48" height="48" viewBox="0 0 48 48">
+                <circle class="gauge-track" cx="24" cy="24" r="20" stroke-dasharray="125.6" stroke-dashoffset="0"/>
+                <circle class="gauge-progress" cx="24" cy="24" r="20" stroke="var(--amber)" stroke-dasharray="125.6" stroke-dashoffset="31.4" id="g-viral"/>
+              </svg>
+            </div>
+            <div class="gauge-val" style="color:var(--amber)" id="gv-viral">8.5</div>
+            <div class="gauge-lbl">Virality</div>
+          </div>
+        </div>
+
+        <div id="scored-posts-area"></div>
+
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary" onclick="goto(2)"><i class="ti ti-arrow-left"></i> Back</button>
+          <button class="btn btn-primary flex-1 btn-lg" onclick="nextStage(3)"><i class="ti ti-arrow-right"></i> Route Models</button>
+          <button class="btn btn-ghost" onclick="showToast('info','Re-scoring posts...','ti-refresh')"><i class="ti ti-refresh"></i> Retry</button>
+        </div>
+      </div>
+
+      <!-- ──────── PANEL 4: MODEL ROUTER ──────── -->
+      <div class="panel" id="panel4">
+        <div class="section-header">
+          <div>
+            <div class="section-title">Model Router</div>
+            <div class="section-sub">// Claude · GPT-4o · Gemini · routing for best output</div>
+          </div>
+          <div class="section-actions">
+            <span class="tag tag-accent">Step 05 / 06</span>
+            <button class="btn btn-ghost" onclick="goto(3)"><i class="ti ti-arrow-left"></i> Back</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="field-label">Active Platform</div>
+          <div class="pill-group" id="router-plat">
+            <button class="pill active" onclick="selectPill(this,'router-plat')">𝕏 Thread</button>
+            <button class="pill" onclick="selectPill(this,'router-plat')">LinkedIn</button>
+            <button class="pill" onclick="selectPill(this,'router-plat')">Dev.to</button>
+            <button class="pill" onclick="selectPill(this,'router-plat')">Reddit</button>
+            <button class="pill" onclick="selectPill(this,'router-plat')">Substack</button>
+          </div>
+        </div>
+
+        <!-- Routing animation -->
+        <div class="routing-vis" id="routing-vis">
+          <div class="route-node" id="rn-source">
+            <div class="route-icon">📄</div>
+            <div class="route-label">Post</div>
+          </div>
+          <div class="route-connector" id="rc1"></div>
+          <div class="route-node" id="rn-router">
+            <div class="route-icon">⚡</div>
+            <div class="route-label">Router</div>
+          </div>
+          <div class="route-connector" id="rc2"></div>
+          <div class="route-node" id="rn-claude">
+            <div class="route-icon">🤖</div>
+            <div class="route-label">Claude</div>
+          </div>
+          <div class="route-connector" id="rc3"></div>
+          <div class="route-node" id="rn-gpt">
+            <div class="route-icon">💡</div>
+            <div class="route-label">GPT-4o</div>
+          </div>
+          <div class="route-connector" id="rc4"></div>
+          <div class="route-node" id="rn-gem">
+            <div class="route-icon">✨</div>
+            <div class="route-label">Gemini</div>
+          </div>
+          <div class="route-connector" id="rc5"></div>
+          <div class="route-node" id="rn-winner">
+            <div class="route-icon">🏆</div>
+            <div class="route-label">Winner</div>
+          </div>
+        </div>
+
+        <div class="model-grid">
+          <div class="model-card" id="rc-claude">
+            <div class="model-header">
+              <div class="model-name">
+                <div class="model-avatar" style="background:rgba(108,99,255,0.2);color:var(--accent2)">🤖</div>
+                Claude
+              </div>
+              <span class="win-badge hidden" id="rb-claude">★ Winner</span>
+            </div>
+            <div class="model-out" id="ro-claude">Run router to generate...</div>
+            <div class="score-row" id="rsc-claude"></div>
+          </div>
+          <div class="model-card" id="rc-gpt">
+            <div class="model-header">
+              <div class="model-name">
+                <div class="model-avatar" style="background:rgba(16,185,129,0.2);color:var(--green)">💡</div>
+                GPT-4o
+              </div>
+              <span class="win-badge hidden" id="rb-gpt">★ Winner</span>
+            </div>
+            <div class="model-out" id="ro-gpt">Run router to generate...</div>
+            <div class="score-row" id="rsc-gpt"></div>
+          </div>
+          <div class="model-card" id="rc-gemini">
+            <div class="model-header">
+              <div class="model-name">
+                <div class="model-avatar" style="background:rgba(56,189,248,0.2);color:var(--accent3)">✨</div>
+                Gemini
+              </div>
+              <span class="win-badge hidden" id="rb-gemini">★ Winner</span>
+            </div>
+            <div class="model-out" id="ro-gemini">Run router to generate...</div>
+            <div class="score-row" id="rsc-gemini"></div>
+          </div>
+        </div>
+
+        <!-- Comparison table -->
+        <div class="card-sm">
+          <div class="field-label" style="margin-bottom:10px">Model Comparison</div>
+          <div style="display:grid;grid-template-columns:1fr repeat(3,80px);gap:8px;font-size:11px;font-family:var(--font-mono)">
+            <div style="color:var(--text3)">Metric</div>
+            <div style="color:var(--accent2);text-align:center">Claude</div>
+            <div style="color:var(--green);text-align:center">GPT-4o</div>
+            <div style="color:var(--accent3);text-align:center">Gemini</div>
+            <div style="color:var(--text3)">Latency</div>
+            <div style="color:var(--text2);text-align:center" id="lat-claude">—</div>
+            <div style="color:var(--text2);text-align:center" id="lat-gpt">—</div>
+            <div style="color:var(--text2);text-align:center" id="lat-gem">—</div>
+            <div style="color:var(--text3)">Cost/1k</div>
+            <div style="color:var(--text2);text-align:center">$0.003</div>
+            <div style="color:var(--text2);text-align:center">$0.005</div>
+            <div style="color:var(--text2);text-align:center">$0.001</div>
+            <div style="color:var(--text3)">Quality</div>
+            <div style="color:var(--text2);text-align:center" id="q-claude">—</div>
+            <div style="color:var(--text2);text-align:center" id="q-gpt">—</div>
+            <div style="color:var(--text2);text-align:center" id="q-gem">—</div>
+          </div>
+        </div>
+
+        <div class="verdict-box">
+          <div class="verdict-label"><i class="ti ti-gavel"></i> Claude's Verdict</div>
+          <div class="verdict-text" id="verdict-text">Run the model router to see Claude's impartial judgement across all three outputs.</div>
+        </div>
+
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary" onclick="goto(3)"><i class="ti ti-arrow-left"></i> Back</button>
+          <button class="btn btn-primary flex-1 btn-lg" id="route-btn" onclick="nextStage(4)"><i class="ti ti-player-play"></i> Run Model Router</button>
+          <button class="btn btn-ghost" onclick="showToast('info','Re-running router...','ti-refresh')"><i class="ti ti-refresh"></i> Re-run</button>
+        </div>
+      </div>
+
+      <!-- ──────── PANEL 5: OUTPUT PACK ──────── -->
+      <div class="panel" id="panel5">
+        <div class="section-header">
+          <div>
+            <div class="section-title">Output Pack</div>
+            <div class="section-sub">// ready-to-publish content · winning post per platform</div>
+          </div>
+          <div class="section-actions">
+            <span class="tag tag-green">✓ Complete</span>
+          </div>
+        </div>
+
+        <div class="card-sm" style="background:rgba(16,185,129,0.06);border-color:rgba(16,185,129,0.2)">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:20px">🎉</span>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--green);margin-bottom:2px">Pipeline Complete</div>
+              <div style="font-size:11px;color:var(--text3);font-family:var(--font-mono)">All posts generated, scored, and routed · Ready for export</div>
+            </div>
+            <div style="margin-left:auto;display:flex;gap:8px">
+              <button class="btn btn-secondary" onclick="showToast('success','Scheduled for publishing!','ti-calendar')"><i class="ti ti-calendar"></i> Schedule</button>
+              <button class="btn btn-green" onclick="showToast('success','CMS sync initiated!','ti-upload')"><i class="ti ti-upload"></i> Send to CMS</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Export format selector -->
+        <div class="card">
+          <div class="field-label">Export Format</div>
+          <div class="pill-group" style="margin-bottom:16px" id="export-format">
+            <button class="pill active" onclick="selectPill(this,'export-format')">Markdown</button>
+            <button class="pill" onclick="selectPill(this,'export-format')">JSON</button>
+            <button class="pill" onclick="selectPill(this,'export-format')">HTML</button>
+            <button class="pill" onclick="selectPill(this,'export-format')">Social Pack</button>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-primary btn-lg" onclick="showToast('success','Content pack downloaded!','ti-download')"><i class="ti ti-download"></i> Download Pack</button>
+            <button class="btn btn-secondary" onclick="showToast('success','Copied all content!','ti-copy')"><i class="ti ti-copy"></i> Copy All</button>
+            <button class="btn btn-ghost" onclick="showToast('info','Opening scheduler...','ti-calendar')"><i class="ti ti-calendar"></i> Schedule All</button>
+          </div>
+        </div>
+
+        <div id="pack-area"></div>
+      </div>
+
+      <!-- ──────── PANEL 6: API KEYS ──────── -->
+      <div class="panel" id="panel6">
+        <div class="section-header">
+          <div>
+            <div class="section-title">API Keys</div>
+            <div class="section-sub">// manage model credentials · secure vault</div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div class="api-key-card">
+            <div class="api-key-icon" style="background:rgba(108,99,255,0.15);color:var(--accent2)">🤖</div>
+            <div class="api-key-info">
+              <div class="api-key-name">Anthropic · Claude</div>
+              <div class="api-key-val">sk-ant-••••••••••••••••••••••••••••••••••••</div>
+            </div>
+            <div class="api-key-status connected"><div class="pulse-dot" style="background:var(--green)"></div> Connected</div>
+            <div style="display:flex;gap:6px;margin-left:12px">
+              <button class="btn btn-ghost" onclick="showToast('success','Claude API tested ✓','ti-check')"><i class="ti ti-plug"></i> Test</button>
+              <button class="btn btn-ghost" onclick="showToast('info','Key rotated!','ti-refresh')"><i class="ti ti-refresh"></i> Rotate</button>
+            </div>
+          </div>
+
+          <div class="api-key-card">
+            <div class="api-key-icon" style="background:rgba(16,185,129,0.15);color:var(--green)">💡</div>
+            <div class="api-key-info">
+              <div class="api-key-name">OpenAI · GPT-4o</div>
+              <input class="dark-input" type="password" id="k-gpt" placeholder="sk-..." style="max-width:240px;margin-top:4px">
+            </div>
+            <div class="api-key-status disconnected"><i class="ti ti-x"></i> Not connected</div>
+            <div style="display:flex;gap:6px;margin-left:12px">
+              <button class="btn btn-secondary" onclick="saveKeyGPT()"><i class="ti ti-check"></i> Save</button>
+            </div>
+          </div>
+
+          <div class="api-key-card">
+            <div class="api-key-icon" style="background:rgba(56,189,248,0.15);color:var(--accent3)">✨</div>
+            <div class="api-key-info">
+              <div class="api-key-name">Google · Gemini</div>
+              <input class="dark-input" type="password" id="k-gemini" placeholder="AIza..." style="max-width:240px;margin-top:4px">
+            </div>
+            <div class="api-key-status disconnected"><i class="ti ti-x"></i> Not connected</div>
+            <div style="display:flex;gap:6px;margin-left:12px">
+              <button class="btn btn-secondary" onclick="saveKeyGemini()"><i class="ti ti-check"></i> Save</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-sm">
+          <div class="field-label" style="margin-bottom:4px">Anthropic API Key (primary)</div>
+          <input class="dark-input" type="password" id="k-claude" placeholder="sk-ant-...">
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button class="btn btn-primary" onclick="saveKeys()"><i class="ti ti-check"></i> Save Key</button>
+            <button class="btn btn-ghost" onclick="showToast('info','Testing key...','ti-api')"><i class="ti ti-plug"></i> Test Connection</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end content-area -->
+  </main>
+</div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+// ── STATE ──
+const pages = [
+  {title:'Input',sub:'GitHub repo URL or product changelog'},
+  {title:'Summarizer',sub:'AI feature extraction'},
+  {title:'Content Generator',sub:'5 platform-specific posts'},
+  {title:'AI Scorer',sub:'Clarity · Engagement · Virality'},
+  {title:'Model Router',sub:'Claude vs GPT vs Gemini'},
+  {title:'Output Pack',sub:'Ready to publish'},
+  {title:'API Keys',sub:'Manage credentials'}
+];
+const progressMap = [0, 20, 40, 60, 80, 100, 100];
+let state = {
+  source:'', summary:'', highlights:'',
+  posts:{}, scores:{}, winners:{},
+  keyClaude:'', keyGPT:'', keyGemini:''
+};
+
+// ── INIT ──
+function buildTopbarSteps() {
+  const c = document.getElementById('topbar-steps');
+  const labels = ['Input','Summarizer','Generator','Scorer','Router','Output'];
+  let html = '';
+  labels.forEach((l,i) => {
+    if(i>0) html += `<div class="pipeline-step-mini"><div class="connector"></div></div>`;
+    html += `<div class="pipeline-step-mini" id="ts${i}" onclick="goto(${i})"><div class="dot"></div>${l}</div>`;
+  });
+  c.innerHTML = html;
+}
+
+function buildStageTabs() {
+  const c = document.getElementById('stage-tabs');
+  const labels = ['Input','Summarizer','Generator','Scorer','Model Router','Output Pack'];
+  let html = '';
+  labels.forEach((l,i) => {
+    html += `<div class="stage-tab" id="st${i}" onclick="goto(${i})"><div class="stage-num">${String(i+1).padStart(2,'0')}</div>${l}</div>`;
+  });
+  c.innerHTML = html;
+}
+
+function updateNav(i) {
+  document.querySelectorAll('.nav-item').forEach((n,idx) => {
+    n.classList.remove('active');
+    if(idx === i) n.classList.add('active');
+  });
+  document.querySelectorAll('.stage-tab').forEach((t,idx) => {
+    t.classList.remove('active');
+    if(idx === i) t.classList.add('active');
+  });
+  document.querySelectorAll('.pipeline-step-mini').forEach((t,idx) => {
+    t.classList.remove('active');
+    const realIdx = Math.floor(idx/2);
+    if(realIdx === i) t.classList.add('active');
+  });
+  document.getElementById('global-prog').style.width = progressMap[Math.min(i,5)] + '%';
+}
+
+function markDone(i) {
+  const n = document.getElementById('nav'+i);
+  if(n) n.classList.add('done');
+  const s = document.getElementById('st'+i);
+  if(s) s.classList.add('done');
+}
+
+function goto(i) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel'+i).classList.add('active');
+  updateNav(i);
+}
+
+buildTopbarSteps();
+buildStageTabs();
+updateNav(0);
+
+// ── PILL UTILS ──
+function selectPill(btn, groupId) {
+  document.querySelectorAll('#'+groupId+' .pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function togglePill(btn) { btn.classList.toggle('active'); }
+
+// ── TOAST ──
+function showToast(type, msg, icon='ti-info-circle') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<i class="ti ${icon} toast-icon"></i><span>${msg}</span>`;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3200);
+}
+
+// ── LOG ──
+function addLog(type, msg) {
+  const c = document.getElementById('log-console');
+  const now = new Date();
+  const time = now.toTimeString().slice(0,8);
+  const classes = {info:'log-info', success:'log-success', warn:'log-warn', error:'log-error'};
+  const labels = {info:'[INFO]', success:'[OK]', warn:'[WARN]', error:'[ERR]'};
+  const line = document.createElement('div');
+  line.className = 'log-line';
+  line.innerHTML = `<span class="log-time">${time}</span><span class="${classes[type]||'log-info'}">${labels[type]||'[INFO]'}</span><span>${msg}</span>`;
+  c.appendChild(line);
+  c.scrollTop = c.scrollHeight;
+}
+
+// ── API ──
+async function callClaude(system, user) {
+  const key = state.keyClaude || document.getElementById('k-claude').value.trim();
+  if(!key) return '[No Claude API key — go to API Keys]';
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system,messages:[{role:'user',content:user}]})
+    });
+    const d = await r.json();
+    if(d.error) return 'Error: '+d.error.message;
+    return d.content.map(b=>b.text||'').join('');
+  } catch(e) { return 'Error: '+e.message; }
+}
+
+async function callGPT(system, user) {
+  const key = state.keyGPT || document.getElementById('k-gpt').value.trim();
+  if(!key) return '[No GPT key]';
+  try {
+    const r = await fetch('https://api.openai.com/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+      body:JSON.stringify({model:'gpt-4o',max_tokens:800,messages:[{role:'system',content:system},{role:'user',content:user}]})
+    });
+    const d = await r.json();
+    if(d.error) return 'Error: '+d.error.message;
+    return d.choices[0].message.content;
+  } catch(e) { return 'Error: '+e.message; }
+}
+
+async function callGemini(system, user) {
+  const key = state.keyGemini || document.getElementById('k-gemini').value.trim();
+  if(!key) return '[No Gemini key]';
+  try {
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({contents:[{parts:[{text:system+'\n\n'+user}]}]})
+    });
+    const d = await r.json();
+    if(d.error) return 'Error: '+d.error.message;
+    return d.candidates[0].content.parts[0].text;
+  } catch(e) { return 'Error: '+e.message; }
+}
+
+// ── PIPELINE STAGES ──
+async function nextStage(from) {
+
+  if(from === 0) {
+    const src = document.getElementById('source-input').value.trim();
+    if(!src) { showToast('error','Please enter a GitHub URL or changelog.','ti-alert-circle'); return; }
+    state.source = src;
+    const btn = document.getElementById('analyze-btn');
+    btn.innerHTML = '<div class="spinner"></div> Analyzing...';
+    btn.disabled = true;
+    addLog('info', 'Fetching source: '+src.slice(0,50)+'...');
+    goto(1);
+    setProgress(0);
+
+    const sys = 'You are a developer relations expert. Analyze this GitHub repo URL or changelog and return ONLY valid JSON: {"commits":number,"features":number,"fixes":number,"summary":"2-3 sentences","highlights":"bullet list of 3-5 key highlights as a string with newlines"}';
+    const raw = await callClaude(sys, 'Source: '+src+'\nContext: '+(document.getElementById('source-context').value||'none'));
+    
+    try {
+      const j = JSON.parse(raw.replace(/```json|```/g,'').trim());
+      document.getElementById('s-commits').textContent = j.commits || '—';
+      document.getElementById('s-features').textContent = j.features || '—';
+      document.getElementById('s-fixes').textContent = j.fixes || '—';
+      document.getElementById('summary-out').value = j.summary || '';
+      document.getElementById('highlights-out').value = j.highlights || '';
+      document.getElementById('sc-change').style.display = 'block';
+      state.summary = j.summary || '';
+      state.highlights = j.highlights || '';
+      addLog('success', `Extracted ${j.commits} commits · ${j.features} features · ${j.fixes} fixes`);
+      showToast('success','Source analyzed successfully!','ti-circle-check');
+      animateProgress();
+    } catch {
+      document.getElementById('summary-out').value = raw;
+      state.summary = raw;
+      addLog('warn', 'JSON parse failed · using raw output');
+    }
+    markDone(0);
+    btn.innerHTML = '<i class="ti ti-player-play"></i> Analyze Source';
+    btn.disabled = false;
+  }
+
+  else if(from === 1) {
+    goto(2);
+    const btn = document.getElementById('gen-btn');
+    btn.innerHTML = '<div class="spinner"></div> Generating...';
+    btn.disabled = true;
+    addLog('info', 'Starting content generation...');
+
+    const platforms = [...document.querySelectorAll('#plat-select .pill.active')].map(b=>b.textContent.trim());
+    const tone = document.querySelector('#tone-select .pill.active')?.textContent||'Technical';
+    const area = document.getElementById('gen-posts-area');
+    area.innerHTML = '';
+    state.posts = {};
+
+    const sys = `You are a DevRel content expert. Write a ${tone} post for the given platform about this product update. Return only the post text.`;
+    const results = await Promise.all(
+      platforms.map(p => callClaude(sys,`Platform: ${p}\nSummary: ${state.summary}\nHighlights: ${state.highlights}`).then(t=>({p,t})))
+    );
+
+    results.forEach(({p,t}) => {
+      state.posts[p] = t;
+      const card = document.createElement('div');
+      card.className = 'output-pack';
+      card.innerHTML = `
+        <div class="pack-header">
+          <div class="pack-platform"><i class="ti ti-pencil"></i> ${p}</div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-ghost" style="padding:4px 8px;font-size:11px" onclick="navigator.clipboard.writeText(this.closest('.output-pack').querySelector('textarea').value);showToast('success','Copied!','ti-copy')"><i class="ti ti-copy"></i> Copy</button>
+            <button class="btn btn-green" style="padding:4px 8px;font-size:11px" onclick="showToast('success','${p} post published!','ti-send')"><i class="ti ti-send"></i> Publish</button>
+          </div>
+        </div>
+        <textarea class="dark-input dark-textarea" style="min-height:80px">${t}</textarea>`;
+      area.appendChild(card);
+    });
+
+    addLog('success', `Generated ${results.length} platform posts`);
+    showToast('success','All posts generated!','ti-circle-check');
+    markDone(1);
+    btn.innerHTML = '<i class="ti ti-refresh"></i> Regenerate';
+    btn.disabled = false;
+  }
+
+  else if(from === 2) {
+    goto(3);
+    const area = document.getElementById('scored-posts-area');
+    area.innerHTML = '<div style="display:flex;align-items:center;gap:8px;color:var(--text3);font-size:12px;font-family:var(--font-mono);padding:8px 0"><div class="spinner"></div> Scoring all posts...</div>';
+    const platforms = Object.keys(state.posts);
+    state.scores = {};
+
+    const sys = 'You are a DevRel content judge. Score this post on Clarity (1-10), Engagement (1-10), TechAccuracy (1-10), Virality (1-10). Return ONLY JSON: {"clarity":n,"engagement":n,"tech":n,"virality":n,"note":"one sentence feedback"}';
+    const scored = await Promise.all(
+      platforms.map(p => callClaude(sys,`Platform: ${p}\nPost: ${state.posts[p]}`).then(r => {
+        try { return {p, j:JSON.parse(r.replace(/```json|```/g,'').trim())}; }
+        catch { return {p, j:{clarity:7,engagement:7,tech:7,virality:7,note:r}}; }
+      }))
+    );
+
+    area.innerHTML = '';
+    let totalClarity=0, totalEngage=0, totalTech=0, totalViral=0, cnt=scored.length;
+
+    scored.forEach(({p,j}) => {
+      state.scores[p] = j;
+      totalClarity += j.clarity||0;
+      totalEngage += j.engagement||0;
+      totalTech += j.tech||0;
+      totalViral += j.virality||0;
+
+      const avg = ((j.clarity+j.engagement+j.tech+j.virality)/4).toFixed(1);
+      const card = document.createElement('div');
+      card.className = 'output-pack';
+      card.innerHTML = `
+        <div class="pack-header">
+          <div class="pack-platform">${p}</div>
+          <span class="tag tag-green">Avg ${avg}/10</span>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
+          <span class="score-chip">Clarity ${j.clarity}/10</span>
+          <span class="score-chip">Engagement ${j.engagement}/10</span>
+          <span class="score-chip">Tech ${j.tech}/10</span>
+          <span class="score-chip">Virality ${j.virality}/10</span>
+        </div>
+        <div style="font-size:12px;color:var(--text3)">${j.note||''}</div>`;
+      area.appendChild(card);
+    });
+
+    // Update gauges
+    if(cnt>0) {
+      updateGauge('g-clarity','gv-clarity',totalClarity/cnt,'var(--accent2)');
+      updateGauge('g-engage','gv-engage',totalEngage/cnt,'var(--green)');
+      updateGauge('g-tech','gv-tech',totalTech/cnt,'var(--accent3)');
+      updateGauge('g-viral','gv-viral',totalViral/cnt,'var(--amber)');
+    }
+
+    markDone(2);
+    showToast('success','All posts scored!','ti-chart-bar');
+    addLog('success',`Scored ${scored.length} posts · avg engagement ${(totalEngage/cnt).toFixed(1)}/10`);
+  }
+
+  else if(from === 3) {
+    goto(4);
+    markDone(3);
+  }
+
+  else if(from === 4) {
+    const plat = document.querySelector('#router-plat .pill.active')?.textContent.trim()||'𝕏 Thread';
+    const post = state.posts[plat] || Object.values(state.posts)[0] || 'No post available.';
+    const btn = document.getElementById('route-btn');
+    btn.innerHTML = '<div class="spinner"></div> Routing...';
+    btn.disabled = true;
+
+    // Animate routing vis
+    animateRouting();
+
+    ['claude','gpt','gemini'].forEach(m => {
+      document.getElementById('ro-'+m).textContent = 'Generating...';
+      document.getElementById('rc-'+m).classList.remove('winner');
+      document.getElementById('rb-'+m).classList.add('hidden');
+      document.getElementById('rsc-'+m).innerHTML = '';
+    });
+    document.getElementById('verdict-text').textContent = 'Judging across models...';
+
+    const sys = `Rewrite this ${plat} post to maximise developer engagement. Return only the rewritten post.`;
+    const t0 = performance.now();
+    const [c,g,gem] = await Promise.allSettled([
+      callClaude(sys,post),
+      callGPT(sys,post),
+      callGemini(sys,post)
+    ]);
+    const elapsed = ((performance.now()-t0)/1000).toFixed(1);
+
+    const co = c.status==='fulfilled'?c.value:'[No Claude key]';
+    const go = g.status==='fulfilled'?g.value:'[No GPT key]';
+    const gemo = gem.status==='fulfilled'?gem.value:'[No Gemini key]';
+
+    document.getElementById('ro-claude').textContent = co;
+    document.getElementById('ro-gpt').textContent = go;
+    document.getElementById('ro-gemini').textContent = gemo;
+    document.getElementById('lat-claude').textContent = elapsed+'s';
+    document.getElementById('lat-gpt').textContent = elapsed+'s';
+    document.getElementById('lat-gem').textContent = elapsed+'s';
+
+    const jsys = 'You are a DevRel content judge. Score three versions of a post. Return ONLY JSON: {"claude":{"clarity":n,"engagement":n,"authenticity":n},"gpt":{"clarity":n,"engagement":n,"authenticity":n},"gemini":{"clarity":n,"engagement":n,"authenticity":n},"winner":"claude|gpt|gemini","reasoning":"one sentence"}';
+    const judgeRaw = await callClaude(jsys,`Platform: ${plat}\nClaude: ${co}\nGPT: ${go}\nGemini: ${gemo}`);
+
+    try {
+      const v = JSON.parse(judgeRaw.replace(/```json|```/g,'').trim());
+      ['claude','gpt','gemini'].forEach(m => {
+        const s = v[m];
+        document.getElementById('rsc-'+m).innerHTML =
+          `<span class="score-chip">C ${s.clarity}</span><span class="score-chip">E ${s.engagement}</span><span class="score-chip">A ${s.authenticity}</span>`;
+        const avg = ((s.clarity+s.engagement+s.authenticity)/3).toFixed(1);
+        document.getElementById('q-'+({claude:'claude',gpt:'gpt',gemini:'gem'}[m])).textContent = avg+'/10';
+      });
+      document.getElementById('rc-'+v.winner).classList.add('winner');
+      document.getElementById('rb-'+v.winner).classList.remove('hidden');
+      document.getElementById('verdict-text').textContent = v.reasoning;
+      const winText = {claude:co,gpt:go,gemini:gemo}[v.winner];
+      state.winners[plat] = {model:v.winner, text:winText};
+      addLog('success',`Winner: ${v.winner} · ${elapsed}s`);
+      showToast('success',`${v.winner.charAt(0).toUpperCase()+v.winner.slice(1)} wins for ${plat}!`,'ti-trophy');
+    } catch {
+      document.getElementById('verdict-text').textContent = judgeRaw;
+    }
+
+    markDone(4);
+    // After routing, fill pack area
+    buildOutputPack();
+    btn.innerHTML = '<i class="ti ti-refresh"></i> Re-run Router';
+    btn.disabled = false;
+  }
+}
+
+function buildOutputPack() {
+  const platforms = Object.keys(state.posts);
+  const area = document.getElementById('pack-area');
+  area.innerHTML = '';
+  if(!platforms.length) {
+    area.innerHTML = '<div class="card-sm" style="color:var(--text3);font-size:12px">Run the pipeline first to generate content.</div>';
+    return;
+  }
+  platforms.forEach(p => {
+    const winner = state.winners[p];
+    const text = winner ? winner.text : state.posts[p];
+    const model = winner ? winner.model : 'generated';
+    const card = document.createElement('div');
+    card.className = 'output-pack';
+    card.innerHTML = `
+      <div class="pack-header">
+        <div class="pack-platform"><i class="ti ti-package"></i> ${p}</div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span class="pack-model-badge">★ ${model}</span>
+          <button class="btn btn-ghost" style="padding:4px 8px;font-size:11px" onclick="navigator.clipboard.writeText(this.closest('.output-pack').querySelector('.pack-text').textContent);showToast('success','Copied!','ti-copy')"><i class="ti ti-copy"></i> Copy</button>
+          <button class="btn btn-green" style="padding:4px 8px;font-size:11px" onclick="showToast('success','${p} scheduled!','ti-calendar')"><i class="ti ti-calendar"></i> Schedule</button>
+        </div>
+      </div>
+      <div class="pack-text">${text||'—'}</div>`;
+    area.appendChild(card);
+  });
+}
+
+// ── DOWNLOAD PACK ──
+function downloadPack() {
+  buildOutputPack();
+  goto(5);
+  markDone(5);
+}
+
+// ── GAUGE UPDATE ──
+function updateGauge(ringId, valId, score, color) {
+  const circumference = 125.6;
+  const offset = circumference - (score/10)*circumference;
+  const ring = document.getElementById(ringId);
+  if(ring) { ring.style.strokeDashoffset = offset; ring.style.stroke = color; }
+  const val = document.getElementById(valId);
+  if(val) val.textContent = score.toFixed(1);
+}
+
+// ── PROGRESS BARS ──
+function setProgress(step) {
+  document.getElementById('p1').style.width = '100%';
+  document.getElementById('p2').style.width = '0%';
+  document.getElementById('p3').style.width = '0%';
+  document.getElementById('ft-tag').className = 'tag';
+  document.getElementById('ft-tag').textContent = 'Pending';
+}
+
+function animateProgress() {
+  setTimeout(() => {
+    document.getElementById('p2').style.width = '100%';
+    document.getElementById('ft-tag').className = 'tag tag-green';
+    document.getElementById('ft-tag').textContent = 'Done';
+  }, 300);
+  setTimeout(() => {
+    document.getElementById('p3').style.width = '100%';
+    document.getElementById('tu-tag').className = 'tag tag-green';
+    document.getElementById('tu-tag').textContent = 'Done';
+  }, 700);
+}
+
+// ── ROUTING ANIMATION ──
+function animateRouting() {
+  const connectors = ['rc1','rc2','rc3','rc4','rc5'];
+  const nodes = ['rn-source','rn-router','rn-claude','rn-gpt','rn-gem','rn-winner'];
+  connectors.forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.classList.remove('active');
+  });
+  nodes.forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.classList.remove('active');
+  });
+
+  let delay = 0;
+  connectors.forEach((id,i) => {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      if(el) el.classList.add('active');
+      const node = document.getElementById(nodes[i+1]);
+      if(node) node.classList.add('active');
+    }, delay);
+    delay += 400;
+  });
+  setTimeout(() => {
+    document.getElementById('rn-winner').classList.add('winner');
+  }, delay + 200);
+}
+
+// ── SAVE KEYS ──
+function saveKeys() {
+  state.keyClaude = document.getElementById('k-claude').value.trim();
+  showToast('success','Claude API key saved!','ti-key');
+  addLog('success','Claude API key updated');
+}
+function saveKeyGPT() {
+  state.keyGPT = document.getElementById('k-gpt').value.trim();
+  showToast('success','GPT key saved!','ti-key');
+}
+function saveKeyGemini() {
+  state.keyGemini = document.getElementById('k-gemini').value.trim();
+  showToast('success','Gemini key saved!','ti-key');
+}
+
+// ── DEMO STATE ──
+function demoState() {
+  document.getElementById('source-input').value = 'https://github.com/anthropics/anthropic-sdk-python';
+  document.getElementById('source-context').value = 'Python SDK for developers building AI applications. Target audience: backend engineers and ML practitioners.';
+  showToast('info','Demo data loaded!','ti-wand');
+  addLog('info','Demo state loaded · ready to analyze');
+}
+</script>
+</body>
+</html>
